@@ -1,4 +1,4 @@
-import React, {Fragment, useState } from 'react';
+import React, {Fragment,useEffect,useCallback,useState } from 'react';
 import MovieList from './components/MoviesList';
 import './App.css';
 
@@ -8,15 +8,16 @@ function App() {
   const [error, setError] = useState(null);
   const [retrying , setRetrying]=useState(false);
 
-  async function fetchMoviesHandler() {
+
+
+  const fetchMoviesHandler = useCallback(async ()=> {
     setisLoading(true);
     setError(null);
     try {
-      const response = await fetch("https://swapi.dev/api/film/");
+      const response = await fetch("https://swapi.dev/api/films/");
       if (!response.ok) {
         throw new Error("Could not fetch movies Error ");
       }
-
       const data = await response.json();
       const transformedMovies = data.results.map((movieData) => {
         return {
@@ -26,22 +27,21 @@ function App() {
           releaseDate: movieData.release_date,
         };
       });
-
       setMovies(transformedMovies);
-
+      
     } catch (error) {
       setError(error.message);
       setRetrying(true);
     }
     setisLoading(false);
-  }
+  });
+
+  useEffect(()=>{fetchMoviesHandler();},[])
 
   const cancelRetryHandler = () => {
     setRetrying(false);
   };
-
     let content = <p>Found no movies</p>;
-
     if (movies.length > 0) {
       content = <MovieList movies={movies} />;
     }
@@ -54,12 +54,10 @@ function App() {
         </Fragment>
       );;
     }
-
     if (isloading) {
       content = <p>Loading...</p>;
     }
-
-
+  
   return (
     <React.Fragment>
       <section>
@@ -69,5 +67,4 @@ function App() {
     </React.Fragment>
   );
 }
-
 export default App;

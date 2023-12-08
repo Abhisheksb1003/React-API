@@ -1,16 +1,15 @@
 import React, {Fragment,useEffect,useCallback,useState } from 'react';
 import MovieList from './components/MoviesList';
+import Moviesform from './components/Moviesform';
 import './App.css';
 
 function App() {
   const [movies, setMovies] = useState([]);
   const [isloading, setisLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [retrying , setRetrying]=useState(false);
+  const [retrying, setRetrying] = useState(false);
 
-
-
-  const fetchMoviesHandler = useCallback(async ()=> {
+  const fetchMoviesHandler = useCallback(async () => {
     setisLoading(true);
     setError(null);
     try {
@@ -27,8 +26,8 @@ function App() {
           releaseDate: movieData.release_date,
         };
       });
+
       setMovies(transformedMovies);
-      
     } catch (error) {
       setError(error.message);
       setRetrying(true);
@@ -36,30 +35,38 @@ function App() {
     setisLoading(false);
   });
 
-  useEffect(()=>{fetchMoviesHandler();},[])
+  useEffect(() => {
+    fetchMoviesHandler();
+  }, []);
 
   const cancelRetryHandler = () => {
     setRetrying(false);
   };
-    let content = <p>Found no movies</p>;
-    if (movies.length > 0) {
-      content = <MovieList movies={movies} />;
-    }
-    if (error) {
-      content = (
-        <Fragment>
-          <p>{error}</p>
-          {retrying && <p>Retrying...</p>}
-          {retrying && <button onClick={cancelRetryHandler}> Cancel</button>}
-        </Fragment>
-      );;
-    }
-    if (isloading) {
-      content = <p>Loading...</p>;
-    }
-  
+
+  let content = <p>Found no movies</p>;
+
+  if (movies.length > 0) {
+    content = <MovieList movies={movies} />;
+  }
+  if (error) {
+    content = (
+      <Fragment>
+        <p>{error}</p>
+        {retrying && <p>Retrying...</p>}
+        {retrying && <button onClick={cancelRetryHandler}> Cancel</button>}
+      </Fragment>
+    );
+  }
+
+  if (isloading) {
+    content = <p>Loading...</p>;
+  }
+
   return (
     <React.Fragment>
+      <section>
+        <Moviesform />
+      </section>
       <section>
         <button onClick={fetchMoviesHandler}>Fetch Movies</button>
       </section>

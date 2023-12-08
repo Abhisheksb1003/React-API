@@ -2,49 +2,64 @@ import React, {Fragment,useEffect,useCallback,useState } from 'react';
 import MovieList from './components/MoviesList';
 import Moviesform from './components/Moviesform';
 import './App.css';
+import Deleteprovider from './Store/Deleteprovider';
 
 function App() {
   const [movies, setMovies] = useState([]);
   const [isloading, setisLoading] = useState(false);
   const [error, setError] = useState(null);
   const [retrying, setRetrying] = useState(false);
-
   const fetchMoviesHandler = useCallback(async () => {
     setisLoading(true);
     setError(null);
     try {
-      const response = await fetch("https://swapi.dev/api/films/");
+      const response = await fetch("https://react-api-1b936-default-rtdb.firebaseio.com/movies.json");
       if (!response.ok) {
         throw new Error("Could not fetch movies Error ");
       }
-      const data = await response.json();
-      const transformedMovies = data.results.map((movieData) => {
-        return {
-          id: movieData.episode_id,
-          title: movieData.title,
-          openingText: movieData.opening_crawl,
-          releaseDate: movieData.release_date,
-        };
-      });
 
-      setMovies(transformedMovies);
+      const data = await response.json();
+
+      const loadedMovies=[];
+
+      for(const key in data){
+        loadedMovies.push({
+          id:key,
+          title:data[key].title,
+          opeaningText:data[key].opeaningText,
+          releaseDate:data[key].releaseDate
+
+        })
+      }
+
+
+      setMovies(loadedMovies);
     } catch (error) {
       setError(error.message);
       setRetrying(true);
     }
     setisLoading(false);
   });
-
   useEffect(() => {
     fetchMoviesHandler();
   }, []);
-
   const cancelRetryHandler = () => {
     setRetrying(false);
   };
 
-  let content = <p>Found no movies</p>;
+  async function addMovieHandler(movie) {
+    const response = await fetch('https://react-api-1b936-default-rtdb.firebaseio.com/movies.json',{
+      method:'POST',
+      body:JSON.stringify(movie),
+      headers:{
+        'content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    console.log(data)
+  }
 
+  let content = <p>Found no movies</p>;
   if (movies.length > 0) {
     content = <MovieList movies={movies} />;
   }
@@ -57,21 +72,21 @@ function App() {
       </Fragment>
     );
   }
-
   if (isloading) {
     content = <p>Loading...</p>;
   }
 
   return (
-    <React.Fragment>
+    <Deleteprovider>
       <section>
-        <Moviesform />
+        <Moviesform  onAddMovie={addMovieHandler}/>
       </section>
       <section>
         <button onClick={fetchMoviesHandler}>Fetch Movies</button>
       </section>
       <section>{content}</section>
-    </React.Fragment>
+    </Deleteprovider>
   );
 }
+
 export default App;
